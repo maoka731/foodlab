@@ -6,8 +6,8 @@ import type { IngredientId } from "@/data/kitchen";
 
 const HOW_TO = [
   { title: "挑食材", text: "從籃子裡選兩到五樣今天想吃的東西。" },
-  { title: "配一道菜", text: "依你選的食材，端出最適合的菜和它的做法。" },
-  { title: "親手做", text: "切、炒、調味、抓火候，跟著步驟一關關完成。" },
+  { title: "配一道菜", text: "依你選的食材，找出做得出來的菜，和它的營養卡。" },
+  { title: "玩一局，或直接看", text: "切、炒、調味、抓火候；趕時間也能跳過，直接看營養卡。" },
 ];
 
 const HERO_INGREDIENTS: { id: IngredientId; className: string; speed: number; spin: number }[] = [
@@ -133,15 +133,21 @@ export default function Home() {
             </div>
             <ol className="mt-8 grid border-t-2 border-ink md:grid-cols-2 md:gap-x-12">
               {RECIPES.map((recipe, index) => (
-                <li key={recipe.id} className="flex items-center gap-4 border-b border-ink/30 py-4">
-                  <span className="w-8 shrink-0 font-latin text-2xl text-terracotta italic">{index + 1}</span>
-                  <DishArt recipe={recipe} className="h-16 w-16 shrink-0" />
-                  <div className="min-w-0">
-                    <h3 className="text-xl font-bold">{recipe.name}</h3>
-                    <p className="text-sm text-ink-soft">
-                      {recipe.ingredients.map((id) => INGREDIENT_BY_ID[id].name).join("・")}
-                    </p>
-                  </div>
+                <li key={recipe.id} className="border-b border-ink/30">
+                  <Link
+                    href={`/dishes/${recipe.id}`}
+                    className="group flex items-center gap-4 py-4 transition-colors duration-150 hover:bg-paper/60"
+                  >
+                    <span className="w-8 shrink-0 font-latin text-2xl text-terracotta italic">{index + 1}</span>
+                    <DishArt recipe={recipe} className="h-16 w-16 shrink-0 transition-transform duration-200 group-hover:-rotate-6" />
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-xl font-bold group-hover:text-terracotta">{recipe.name}</h3>
+                      <p className="text-sm text-ink-soft">
+                        {recipe.ingredients.map((id) => INGREDIENT_BY_ID[id].name).join("・")}
+                      </p>
+                    </div>
+                    <span className="shrink-0 pr-2 text-sm text-ink-soft group-hover:text-terracotta">營養卡 →</span>
+                  </Link>
                 </li>
               ))}
             </ol>

@@ -314,7 +314,7 @@ function DoneView({
         <StageLabel number="iv.">上菜</StageLabel>
         <h3 className="serve-in text-5xl font-black tracking-[0.2em] sm:text-6xl">完成！</h3>
       </div>
-      <DishAnatomy recipe={recipe} stars={stars} score={Math.round(average * 100)} note={STAR_NOTES[stars]} />
+      <DishAnatomy recipe={recipe} rating={{ stars, score: Math.round(average * 100), note: STAR_NOTES[stars] }} />
       <div className="mt-8 flex flex-wrap justify-center gap-3">
         <button type="button" className={primaryButton} onClick={onRestart}>換一組食材</button>
         <button type="button" className={secondaryButton} onClick={onRetry}>再做一次</button>

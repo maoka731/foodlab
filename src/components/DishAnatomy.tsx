@@ -3,8 +3,25 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { DishArt, IngredientArt, Star } from "@/components/illustrations";
-import type { Recipe } from "@/data/kitchen";
-import { dissect, macroShares } from "@/data/nutrition";
+import { CARD_COPY } from "@/data/cards";
+import { groupsOf } from "@/data/kitchen";
+import type { FoodGroup, Recipe } from "@/data/kitchen";
+import { NUTRITION_SOURCE, dissect, macroShares } from "@/data/nutrition";
+
+const MISSING_GROUP_TIPS: Record<FoodGroup, string> = {
+  grains: "配一碗飯、麵或地瓜，補上主食。",
+  protein: "加一份蛋、豆腐或肉，補上蛋白質。",
+  veg: "加一盤燙青菜或一碗蔬菜湯。",
+};
+
+function DemoBadge() {
+  if (NUTRITION_SOURCE.status !== "demo") return null;
+  return (
+    <span className="rounded-full border border-ink/40 px-2 py-0.5 align-middle text-xs font-normal tracking-normal text-ink-soft">
+      {NUTRITION_SOURCE.label}
+    </span>
+  );
+}
 
 /* 已通過 dataviz 色彩驗證；芥末黃對比較低，因此圖上一律直接標籤，並附數據表。 */
 const MACROS = [
@@ -106,6 +123,7 @@ function StackRow({
   index,
   title,
   en,
+  tags,
   children,
   last,
 }: {
@@ -113,6 +131,7 @@ function StackRow({
   index: number;
   title: string;
   en: string;
+  tags?: string[];
   children?: ReactNode;
   last?: boolean;
 }) {
@@ -132,6 +151,11 @@ function StackRow({
         <p className="flex flex-wrap items-baseline gap-x-2">
           <span className="text-lg font-bold">{title}</span>
           <span className="font-latin text-ink-soft italic">{en}</span>
+          {tags?.map((tag) => (
+            <span key={tag} className="rounded-full bg-paper-deep px-2 py-0.5 text-xs text-ink">
+              {tag}
+            </span>
+          ))}
         </p>
         {children && <p className="mt-1 text-[0.95rem] leading-relaxed text-ink-soft">{children}</p>}
       </div>
@@ -139,24 +163,20 @@ function StackRow({
   );
 }
 
-export function DishAnatomy({
-  recipe,
-  stars,
-  score,
-  note,
-}: {
-  recipe: Recipe;
-  stars: 1 | 2 | 3;
-  score: number;
-  note: string;
-}) {
+export type Rating = { stars: 1 | 2 | 3; score: number; note: string };
+
+/** 料理營養卡：食材來源 → 營養亮點 → 生活應用。rating 只在玩完小遊戲時出現。 */
+export function DishAnatomy({ recipe, rating, className = "mt-14" }: { recipe: Recipe; rating?: Rating; className?: string }) {
   const report = dissect(recipe);
+  const copy = CARD_COPY[recipe.id];
+  const groups = groupsOf(recipe);
+  const missing = groups.filter((group) => !group.covered);
   const shares = macroShares(report.total);
   const [active, setActive] = useState<MacroKey | null>(null);
   const pantryText = report.pantry.map((item) => `${item.name} ${item.grams}g`).join("、");
 
   return (
-    <article aria-label={`${recipe.name}食譜卡`} className="mx-auto mt-14 max-w-5xl border-2 border-ink bg-paper-light">
+    <article aria-label={`${recipe.name}料理營養卡`} className={`mx-auto max-w-5xl border-2 border-ink bg-paper-light ${className}`}>
       <div className="m-2 border border-ink sm:m-3">
         <header className="grid items-center gap-6 border-b border-ink px-4 py-8 sm:px-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:gap-10">
           <div className="relative mx-auto aspect-square w-full max-w-sm">
@@ -164,26 +184,38 @@ export function DishAnatomy({
             <DishArt recipe={recipe} title={`${recipe.name}成品`} className="relative h-full w-full" />
           </div>
           <div className="text-center md:text-left">
-            <p className="text-sm tracking-[0.3em] text-ink-soft">食譜卡・Recipe Card</p>
+            <p className="text-sm tracking-[0.3em] text-ink-soft">料理營養卡・Dish Card</p>
             <p className="mt-4 font-latin text-xl text-terracotta italic">{report.en}</p>
             <h4 className="text-4xl font-black tracking-[0.1em] sm:text-5xl">{recipe.name}</h4>
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 md:justify-start">
-              <span className="flex gap-0.5" role="img" aria-label={`獲得 ${stars} 顆星，滿分 3 顆`}>
-                {[1, 2, 3].map((value) => (
-                  <Star key={value} filled={value <= stars} className="h-9 w-9" />
-                ))}
-              </span>
-              <span className="text-sm text-ink-soft">完成度 {score} 分</span>
-            </div>
-            <p className="mt-2 font-semibold">{note}</p>
+            {rating && (
+              <>
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 md:justify-start">
+                  <span className="flex gap-0.5" role="img" aria-label={`獲得 ${rating.stars} 顆星，滿分 3 顆`}>
+                    {[1, 2, 3].map((value) => (
+                      <Star key={value} filled={value <= rating.stars} className="h-9 w-9" />
+                    ))}
+                  </span>
+                  <span className="text-sm text-ink-soft">完成度 {rating.score} 分</span>
+                </div>
+                <p className="mt-2 font-semibold">{rating.note}</p>
+              </>
+            )}
             <p className="mt-4 leading-relaxed text-ink-soft">{report.quip}</p>
+            <ul className="mt-5 space-y-2 text-left" aria-label="營養亮點">
+              {copy.highlights.map((item) => (
+                <li key={item.label} className="flex gap-3">
+                  <span className="h-fit shrink-0 rounded-full bg-moss px-3 py-0.5 text-sm font-semibold text-paper">{item.label}</span>
+                  <span className="leading-relaxed">{item.note}</span>
+                </li>
+              ))}
+            </ul>
             <dl className="mt-6 flex justify-center gap-8 border-t border-line pt-4 md:justify-start">
               <div>
                 <dt className="text-sm text-ink-soft">份量</dt>
                 <dd className="mt-1 text-xl font-bold">一人份・約 {Math.round(report.grams)} g</dd>
               </div>
               <div>
-                <dt className="text-sm text-ink-soft">熱量</dt>
+                <dt className="text-sm text-ink-soft">熱量 <DemoBadge /></dt>
                 <dd className="mt-1 text-xl font-bold">
                   {Math.round(report.total.kcal)} <span className="text-base font-normal">大卡</span>
                 </dd>
@@ -195,7 +227,7 @@ export function DishAnatomy({
         <div className="grid gap-10 px-4 py-8 sm:px-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-12">
           <section aria-labelledby={`${recipe.id}-ingredients`}>
             <h5 id={`${recipe.id}-ingredients`} className="flex items-baseline gap-3 border-b-2 border-ink pb-2">
-              <span className="text-2xl font-bold">食材拆解</span>
+              <span className="text-2xl font-bold">食材來源</span>
               <span className="font-latin text-lg text-ink-soft italic">Dish Anatomy</span>
             </h5>
             <div className="mt-4 flex gap-2 sm:gap-3">
@@ -208,6 +240,7 @@ export function DishAnatomy({
                     art={<IngredientArt id={item.id} className="h-full w-full" />}
                     title={item.name}
                     en={item.en}
+                    tags={item.tags}
                   >
                     {item.fact}
                   </StackRow>
@@ -231,6 +264,7 @@ export function DishAnatomy({
           <section aria-labelledby={`${recipe.id}-nutrition`}>
             <h5 id={`${recipe.id}-nutrition`} className="flex items-baseline gap-3 border-b-2 border-ink pb-2">
               <span className="text-2xl font-bold">熱量都從哪裡來？</span>
+              <DemoBadge />
             </h5>
             <MacroPie shares={shares} grams={report.total} active={active} onActive={setActive} />
             <table className="mt-2 w-full border-collapse text-left">
@@ -268,16 +302,61 @@ export function DishAnatomy({
           </section>
         </div>
 
-        <div className="px-4 pb-6 text-sm leading-relaxed text-ink-soft sm:px-8">
+        <section aria-labelledby={`${recipe.id}-apply`} className="border-t border-ink px-4 py-8 sm:px-8">
+          <h5 id={`${recipe.id}-apply`} className="flex items-baseline gap-3 border-b-2 border-ink pb-2">
+            <span className="text-2xl font-bold">生活應用</span>
+            <span className="font-latin text-lg text-ink-soft italic">Eat Smart</span>
+          </h5>
+          <div className="mt-5 grid gap-6 md:grid-cols-3 md:gap-8">
+            <div>
+              <h6 className="font-bold">這道菜還缺什麼？</h6>
+              <ul className="mt-3 flex flex-wrap gap-2" aria-label="食物類別涵蓋情形">
+                {groups.map((group) => (
+                  <li
+                    key={group.id}
+                    className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm ${
+                      group.covered ? "border-moss bg-moss/10 text-ink" : "border-dashed border-ink/50 text-ink-soft"
+                    }`}
+                  >
+                    <span aria-hidden="true">{group.covered ? "●" : "○"}</span>
+                    {group.name}
+                    <span className="sr-only">{group.covered ? "已涵蓋" : "可再補充"}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 leading-relaxed text-ink-soft">
+                {missing.length === 0
+                  ? "主食、蛋白質、蔬菜三類都有了。"
+                  : missing.map((group) => MISSING_GROUP_TIPS[group.id]).join("")}
+              </p>
+            </div>
+            <div>
+              <h6 className="font-bold">搭配什麼更完整？</h6>
+              <p className="mt-3 leading-relaxed text-ink-soft">{copy.pairingTip}</p>
+            </div>
+            <div>
+              <h6 className="font-bold">外食小提醒</h6>
+              <p className="mt-3 leading-relaxed text-ink-soft">{copy.eatingOutTip}</p>
+            </div>
+          </div>
+          <p className="mt-6 text-sm leading-relaxed text-ink-soft">
+            這裡只看食物類別。均衡要看整餐、全天和份量，每個人的需求也不一樣。
+          </p>
+        </section>
+
+        <div className="border-t border-line px-4 py-5 text-sm leading-relaxed text-ink-soft sm:px-8">
           {pantryText && <p>調味與用油：{pantryText}（已計入總熱量）</p>}
           <p className="mt-1">
-            營養數值依常見食材成分與本站設定的一人份用量估算，未計入高湯、米酒、豆瓣醬與烹調耗損，僅供參考，並非營養或醫療建議。
+            {NUTRITION_SOURCE.status === "demo"
+              ? "熱量與三大營養素目前為示意數值，尚未對應正式營養資料庫，僅供展示版面。"
+              : `營養數值來源：${NUTRITION_SOURCE.refs.join("、")}。`}
+            營養說明為一般性資訊，並非營養或醫療建議。
           </p>
         </div>
 
         <footer className="flex items-center justify-between gap-3 bg-ink px-4 py-2.5 text-sm text-paper sm:px-8">
           <span className="tracking-[0.2em]">食驗室</span>
-          <span className="font-latin italic">Recipe Card</span>
+          <span className="font-latin italic">Dish Card</span>
         </footer>
       </div>
     </article>
