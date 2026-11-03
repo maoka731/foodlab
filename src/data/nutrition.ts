@@ -1,11 +1,21 @@
 import { INGREDIENT_BY_ID } from "@/data/kitchen";
 import type { IngredientId, Recipe } from "@/data/kitchen";
 
-/** 每 100 公克的概略值：熱量 kcal，其餘單位為公克。 */
+/**
+ * 營養數值目前為示意（Demo）資料，尚未對應正式資料庫。
+ * 之後替換時，只需更新下方每 100 公克數值與 NUTRITION_SOURCE，計算邏輯不變。
+ */
+export const NUTRITION_SOURCE = {
+  status: "demo" as "demo" | "verified",
+  label: "示意數值",
+  refs: [] as string[],
+};
+
+/** 每 100 公克的數值：熱量 kcal，其餘單位為公克。 */
 type Per100g = { kcal: number; carbs: number; protein: number; fat: number; fiber: number };
 
 const INGREDIENT_NUTRITION: Record<IngredientId, Per100g & { fact: string }> = {
-  tomato: { kcal: 18, carbs: 3.9, protein: 0.9, fat: 0.2, fiber: 1.2, fact: "含維生素 C 與茄紅素。茄紅素是脂溶性的，和油一起炒更好吸收。" },
+  tomato: { kcal: 18, carbs: 3.9, protein: 0.9, fat: 0.2, fiber: 1.2, fact: "含茄紅素，屬脂溶性，和油一起炒更好吸收；生番茄的維生素 C 怕熱，久煮會流失一部分。" },
   egg: { kcal: 143, carbs: 0.7, protein: 12.6, fat: 9.5, fiber: 0, fact: "優質完全蛋白，蛋黃還有膽鹼和維生素 D。" },
   scallion: { kcal: 32, carbs: 7.3, protein: 1.8, fat: 0.2, fiber: 2.6, fact: "用量不多，負責香氣，順便補一點維生素 K。" },
   tofu: { kcal: 76, carbs: 1.9, protein: 8.1, fat: 4.8, fiber: 0.3, fact: "植物性蛋白的好來源，用鈣鹽凝固的豆腐也含鈣。" },
@@ -14,9 +24,9 @@ const INGREDIENT_NUTRITION: Record<IngredientId, Per100g & { fact: string }> = {
   noodles: { kcal: 138, carbs: 25.2, protein: 4.5, fat: 2.1, fiber: 1.2, fact: "碳水為主，小麥麵條也帶一些蛋白質。" },
   chicken: { kcal: 221, carbs: 0, protein: 17, fat: 16, fiber: 0, fact: "提供蛋白質與菸鹼酸；香氣和脂肪多半來自那層雞皮。" },
   garlic: { kcal: 149, carbs: 33, protein: 6.4, fat: 0.5, fiber: 2.1, fact: "切開後會產生蒜素，也就是那股強烈香氣的來源。" },
-  chili: { kcal: 40, carbs: 8.8, protein: 1.9, fat: 0.4, fiber: 1.5, fact: "辣味來自辣椒素，新鮮辣椒的維生素 C 也不少。" },
+  chili: { kcal: 40, carbs: 8.8, protein: 1.9, fat: 0.4, fiber: 1.5, fact: "辣味來自辣椒素。生辣椒含維生素 C，但入菜加熱後會減少，用量也不多。" },
   basil: { kcal: 23, carbs: 2.7, protein: 3.2, fat: 0.6, fiber: 1.6, fact: "含維生素 K 與多種香氣精油，久煮香氣會跑掉。" },
-  greens: { kcal: 13, carbs: 2.2, protein: 1.5, fat: 0.2, fiber: 1, fact: "熱量很低，有維生素 A、C、K，還有一些鈣。" },
+  greens: { kcal: 13, carbs: 2.2, protein: 1.5, fat: 0.2, fiber: 1, fact: "提供膳食纖維、維生素 A 和一些鈣；大火快炒、別久煮，能少流失怕熱的維生素。" },
 };
 
 type PantryId = "oil" | "sesameOil" | "sugar" | "soy";

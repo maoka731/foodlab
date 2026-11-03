@@ -12,26 +12,39 @@ export type IngredientId =
   | "basil"
   | "greens";
 
+/** 參考台灣每日飲食指南的食物類別；辛香料用量少，不算入任何一類。 */
+export type FoodGroup = "grains" | "protein" | "veg";
+
+export const FOOD_GROUPS: { id: FoodGroup; name: string; hint: string }[] = [
+  { id: "grains", name: "全穀雜糧", hint: "飯、麵等主食" },
+  { id: "protein", name: "豆魚蛋肉", hint: "蛋、豆腐、肉類" },
+  { id: "veg", name: "蔬菜", hint: "葉菜、菇類、番茄" },
+];
+
 export type Ingredient = {
   id: IngredientId;
   en: string;
   name: string;
   note: string;
+  /** 食物類別；空陣列代表辛香料。 */
+  groups: FoodGroup[];
+  /** 1–2 個定性營養標籤，不放療效語言。 */
+  tags: string[];
 };
 
 export const INGREDIENTS: Ingredient[] = [
-  { id: "tomato", en: "Tomato", name: "番茄", note: "酸甜的底氣" },
-  { id: "egg", en: "Egg", name: "雞蛋", note: "什麼都接得住" },
-  { id: "scallion", en: "Scallion", name: "青蔥", note: "最後一把香" },
-  { id: "tofu", en: "Tofu", name: "豆腐", note: "安靜吸滿味道" },
-  { id: "mushroom", en: "Shiitake", name: "香菇", note: "山裡的鮮" },
-  { id: "rice", en: "Rice", name: "白米飯", note: "隔夜的最好" },
-  { id: "noodles", en: "Noodles", name: "麵條", note: "一口氣吸完" },
-  { id: "chicken", en: "Chicken Thigh", name: "雞腿肉", note: "帶皮才夠味" },
-  { id: "garlic", en: "Garlic", name: "蒜頭", note: "廚房的開場白" },
-  { id: "chili", en: "Chili", name: "辣椒", note: "一點點脾氣" },
-  { id: "basil", en: "Thai Basil", name: "九層塔", note: "起鍋前才放" },
-  { id: "greens", en: "Bok Choy", name: "青江菜", note: "脆脆的良心" },
+  { id: "tomato", en: "Tomato", name: "番茄", note: "酸甜的底氣", groups: ["veg"], tags: ["茄紅素", "膳食纖維"] },
+  { id: "egg", en: "Egg", name: "雞蛋", note: "什麼都接得住", groups: ["protein"], tags: ["蛋白質", "膽鹼"] },
+  { id: "scallion", en: "Scallion", name: "青蔥", note: "最後一把香", groups: [], tags: ["辛香料"] },
+  { id: "tofu", en: "Tofu", name: "豆腐", note: "安靜吸滿味道", groups: ["protein"], tags: ["植物性蛋白"] },
+  { id: "mushroom", en: "Shiitake", name: "香菇", note: "山裡的鮮", groups: ["veg"], tags: ["膳食纖維", "B 群"] },
+  { id: "rice", en: "Rice", name: "白米飯", note: "隔夜的最好", groups: ["grains"], tags: ["碳水化合物"] },
+  { id: "noodles", en: "Noodles", name: "麵條", note: "一口氣吸完", groups: ["grains"], tags: ["碳水化合物"] },
+  { id: "chicken", en: "Chicken Thigh", name: "雞腿肉", note: "帶皮才夠味", groups: ["protein"], tags: ["蛋白質", "菸鹼酸"] },
+  { id: "garlic", en: "Garlic", name: "蒜頭", note: "廚房的開場白", groups: [], tags: ["辛香料"] },
+  { id: "chili", en: "Chili", name: "辣椒", note: "一點點脾氣", groups: [], tags: ["辛香料", "辣椒素"] },
+  { id: "basil", en: "Thai Basil", name: "九層塔", note: "起鍋前才放", groups: [], tags: ["辛香料"] },
+  { id: "greens", en: "Bok Choy", name: "青江菜", note: "脆脆的良心", groups: ["veg"], tags: ["膳食纖維", "維生素 A"] },
 ];
 
 export const INGREDIENT_BY_ID = Object.fromEntries(
@@ -174,6 +187,11 @@ export const RECIPES: Recipe[] = [
   },
 ];
 
+export const RECIPE_BY_ID = Object.fromEntries(RECIPES.map((recipe) => [recipe.id, recipe])) as Record<
+  string,
+  Recipe
+>;
+
 export const MAX_PICK = Math.max(...RECIPES.map((recipe) => recipe.ingredients.length));
 
 const isSubsetOf = (items: IngredientId[], recipe: Recipe) =>
@@ -200,6 +218,30 @@ export function completions(selected: IngredientId[]) {
       missing: recipe.ingredients.filter((id) => !selected.includes(id)),
     }))
     .sort((a, b) => a.missing.length - b.missing.length);
+}
+
+/** 一道菜涵蓋的食物類別，依實際食材判斷，不看菜名。 */
+export function groupsOf(recipe: Recipe) {
+  const covered = new Set(recipe.ingredients.flatMap((id) => INGREDIENT_BY_ID[id].groups));
+  return FOOD_GROUPS.map((group) => ({ ...group, covered: covered.has(group.id) }));
+}
+
+/** 自由實驗用：可直接做的菜、只差一項的菜、以及最接近的真實菜色。 */
+export function explore(selected: IngredientId[]) {
+  const scored = RECIPES.map((recipe) => ({
+    recipe,
+    hits: recipe.ingredients.filter((id) => selected.includes(id)).length,
+    missing: recipe.ingredients.filter((id) => !selected.includes(id)),
+    extra: selected.filter((id) => !recipe.ingredients.includes(id)),
+  })).filter((entry) => entry.hits > 0);
+
+  return {
+    ready: scored.filter((entry) => entry.missing.length === 0),
+    nearly: scored.filter((entry) => entry.missing.length === 1),
+    closest: [...scored]
+      .sort((a, b) => b.hits - a.hits || a.missing.length + a.extra.length - (b.missing.length + b.extra.length))
+      .slice(0, 3),
+  };
 }
 
 export function starsFor(average: number): 1 | 2 | 3 {
