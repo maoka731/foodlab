@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DishAnatomy } from "@/components/DishAnatomy";
-import { DishArt, IngredientArt, Star } from "@/components/illustrations";
+import { DishArt, IngredientArt } from "@/components/illustrations";
 import { ChopGame, HeatGame, PourGame, StirGame } from "@/components/minigames";
 import {
   INGREDIENT_BY_ID,
@@ -86,6 +86,7 @@ export function Kitchen() {
         <CookView
           key={`${recipe.id}-${stepIndex}`}
           dish={recipe.name}
+          ingredients={recipe.ingredients}
           step={recipe.steps[stepIndex]}
           index={stepIndex}
           total={recipe.steps.length}
@@ -249,6 +250,7 @@ function MatchView({
 
 function CookView({
   dish,
+  ingredients,
   step,
   index,
   total,
@@ -257,6 +259,7 @@ function CookView({
   onNext,
 }: {
   dish: string;
+  ingredients: IngredientId[];
   step: GameStep;
   index: number;
   total: number;
@@ -271,7 +274,7 @@ function CookView({
       <p className="mx-auto mt-3 max-w-lg leading-relaxed text-ink-soft">{step.text}</p>
       <div className="mt-8">
         {step.game === "chop" && <ChopGame ingredient={step.ingredient} onDone={onDone} />}
-        {step.game === "stir" && <StirGame onDone={onDone} />}
+        {step.game === "stir" && <StirGame ingredients={ingredients} onDone={onDone} />}
         {step.game === "heat" && <HeatGame onDone={onDone} />}
         {step.game === "pour" && <PourGame liquid={step.liquid} onDone={onDone} />}
       </div>
@@ -307,19 +310,11 @@ function DoneView({
 
   return (
     <div>
-      <div className="mx-auto max-w-xl text-center">
+      <div className="text-center">
         <StageLabel number="iv.">上菜</StageLabel>
-        <h3 className="text-4xl font-black sm:text-5xl">{recipe.name}，完成！</h3>
-        <DishArt recipe={recipe} title={recipe.name} className="serve-in mx-auto mt-6 w-full max-w-xs" />
-        <div className="mt-4 flex justify-center gap-1" role="img" aria-label={`獲得 ${stars} 顆星，滿分 3 顆`}>
-          {[1, 2, 3].map((value) => (
-            <Star key={value} filled={value <= stars} className="h-12 w-12" />
-          ))}
-        </div>
-        <p className="mt-2 text-sm text-ink-soft">完成度 {Math.round(average * 100)} 分</p>
-        <p className="mt-4 text-lg leading-relaxed">{STAR_NOTES[stars]}</p>
+        <h3 className="serve-in text-5xl font-black tracking-[0.2em] sm:text-6xl">完成！</h3>
       </div>
-      <DishAnatomy recipe={recipe} />
+      <DishAnatomy recipe={recipe} stars={stars} score={Math.round(average * 100)} note={STAR_NOTES[stars]} />
       <div className="mt-8 flex flex-wrap justify-center gap-3">
         <button type="button" className={primaryButton} onClick={onRestart}>換一組食材</button>
         <button type="button" className={secondaryButton} onClick={onRetry}>再做一次</button>

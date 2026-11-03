@@ -107,7 +107,7 @@ const STIR_TURNS = 3;
 const STIR_FAST_MS = 9000;
 const STIR_SLOW_MS = 20000;
 
-export function StirGame({ onDone }: GameProps) {
+export function StirGame({ ingredients, onDone }: GameProps & { ingredients: IngredientId[] }) {
   const [turns, setTurns] = useState(0);
   const [angle, setAngle] = useState(0);
   const pad = useRef<HTMLDivElement>(null);
@@ -168,11 +168,19 @@ export function StirGame({ onDone }: GameProps) {
           <circle cx="100" cy="100" r="94" fill="#4A423B" stroke="#2B2622" strokeWidth="2.4" />
           <circle cx="100" cy="100" r="76" fill="#E9B44C" />
           <g transform={`rotate(${(angle * 180) / Math.PI} 100 100)`}>
-            <path d="M60 80l14-6 6 12-14 5z" fill="#C8492F" stroke="#2B2622" strokeWidth="1.5" />
-            <path d="M120 60l13 3-3 13-12-3z" fill="#6F8150" stroke="#2B2622" strokeWidth="1.5" />
-            <path d="M130 118l14 4-5 13-13-5z" fill="#C8492F" stroke="#2B2622" strokeWidth="1.5" />
-            <path d="M70 130l13-2 3 13-14 2z" fill="#FAF3E3" stroke="#2B2622" strokeWidth="1.5" />
-            <circle cx="100" cy="100" r="6" fill="#6F8150" stroke="#2B2622" strokeWidth="1.5" />
+            {ingredients.map((id, index) => {
+              const angle = (index / ingredients.length) * Math.PI * 2 + 0.6;
+              return (
+                <image
+                  key={id}
+                  href={`/images/ingredients/${id}.png`}
+                  x={100 + Math.cos(angle) * 40 - 21}
+                  y={100 + Math.sin(angle) * 40 - 21}
+                  width="42"
+                  height="42"
+                />
+              );
+            })}
             <g>
               <path d="M100 100L100 20" stroke="#5C3A22" strokeWidth="7" strokeLinecap="round" />
               <ellipse cx="100" cy="46" rx="12" ry="18" fill="#8C5A36" stroke="#2B2622" strokeWidth="2" />

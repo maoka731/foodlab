@@ -44,35 +44,12 @@ export type GameStep =
   | { game: "heat"; title: string; text: string }
   | { game: "pour"; liquid: string; title: string; text: string };
 
-export type Bit = {
-  color: string;
-  shape: "chunk" | "ring" | "leaf" | "dot";
-  count: number;
-};
-
 export type Recipe = {
   id: string;
   name: string;
   blurb: string;
   ingredients: IngredientId[];
-  vessel: "plate" | "bowl" | "pan";
-  texture: "saute" | "rice" | "noodle" | "soup";
-  base: string;
-  bits: Bit[];
   steps: GameStep[];
-};
-
-const COLORS = {
-  tomato: "#C8492F",
-  egg: "#E3A62F",
-  scallion: "#6F8150",
-  tofu: "#FAF3E3",
-  mushroom: "#8C5A36",
-  chicken: "#C98F52",
-  garlic: "#EFE3C8",
-  chili: "#B3301E",
-  basil: "#4C6238",
-  greens: "#7E9458",
 };
 
 export const RECIPES: Recipe[] = [
@@ -81,13 +58,6 @@ export const RECIPES: Recipe[] = [
     name: "番茄炒蛋",
     blurb: "每個家都有自己的版本。酸甜裹著滑蛋，配什麼都對。",
     ingredients: ["tomato", "egg", "scallion"],
-    vessel: "plate",
-    texture: "saute",
-    base: "#E9B44C",
-    bits: [
-      { color: COLORS.tomato, shape: "chunk", count: 9 },
-      { color: COLORS.scallion, shape: "ring", count: 8 },
-    ],
     steps: [
       { game: "chop", ingredient: "tomato", title: "切番茄", text: "切成大小差不多的滾刀塊，熟得才會一樣快。" },
       { game: "stir", title: "打蛋下鍋", text: "蛋液入鍋後順著畫圈，推出大片滑嫩的蛋。" },
@@ -100,13 +70,6 @@ export const RECIPES: Recipe[] = [
     name: "蔥花蛋炒飯",
     blurb: "隔夜飯的第二人生。粒粒分明，是熱鍋給的勳章。",
     ingredients: ["rice", "egg", "scallion"],
-    vessel: "plate",
-    texture: "rice",
-    base: "#EBCB7E",
-    bits: [
-      { color: COLORS.egg, shape: "chunk", count: 8 },
-      { color: COLORS.scallion, shape: "ring", count: 12 },
-    ],
     steps: [
       { game: "chop", ingredient: "scallion", title: "切蔥花", text: "蔥白先爆香，蔥綠留到最後。" },
       { game: "stir", title: "拌炒米飯", text: "蛋炒到半熟就下飯，大火翻拌，把結塊的飯撥散。" },
@@ -119,15 +82,6 @@ export const RECIPES: Recipe[] = [
     name: "三杯雞",
     blurb: "麻油、米酒、醬油各一杯的台式記憶，九層塔一下，整條巷子都香。",
     ingredients: ["chicken", "basil", "garlic", "chili"],
-    vessel: "pan",
-    texture: "saute",
-    base: "#7A3F20",
-    bits: [
-      { color: COLORS.chicken, shape: "chunk", count: 9 },
-      { color: COLORS.garlic, shape: "dot", count: 6 },
-      { color: COLORS.chili, shape: "ring", count: 5 },
-      { color: COLORS.basil, shape: "leaf", count: 7 },
-    ],
     steps: [
       { game: "chop", ingredient: "chicken", title: "切雞腿塊", text: "順著關節下刀，切成一口大小。" },
       { game: "heat", title: "麻油煸香", text: "蒜與雞皮面朝下，煎到金黃就是時候。" },
@@ -140,13 +94,6 @@ export const RECIPES: Recipe[] = [
     name: "麻婆豆腐",
     blurb: "嫩、燙、麻、辣。用湯匙吃，再多添一碗飯。",
     ingredients: ["tofu", "chili", "garlic", "scallion"],
-    vessel: "bowl",
-    texture: "soup",
-    base: "#A8381F",
-    bits: [
-      { color: COLORS.tofu, shape: "chunk", count: 11 },
-      { color: COLORS.scallion, shape: "ring", count: 9 },
-    ],
     steps: [
       { game: "chop", ingredient: "tofu", title: "切豆腐", text: "切成方正小丁，下刀要輕。" },
       { game: "heat", title: "炒出紅油", text: "蒜、辣椒與豆瓣小火慢炒，油色轉紅就對了。" },
@@ -159,14 +106,6 @@ export const RECIPES: Recipe[] = [
     name: "香菇雞湯",
     blurb: "把一整個下午熬進碗裡，適合下雨天和想家的時候。",
     ingredients: ["chicken", "mushroom", "scallion"],
-    vessel: "bowl",
-    texture: "soup",
-    base: "#D9B778",
-    bits: [
-      { color: COLORS.chicken, shape: "chunk", count: 6 },
-      { color: COLORS.mushroom, shape: "chunk", count: 6 },
-      { color: COLORS.scallion, shape: "ring", count: 8 },
-    ],
     steps: [
       { game: "chop", ingredient: "mushroom", title: "切香菇", text: "劃上十字花，香氣和湯都更容易滲進去。" },
       { game: "heat", title: "煎香雞肉", text: "雞肉先煎出油脂，湯才會有底味。" },
@@ -179,14 +118,6 @@ export const RECIPES: Recipe[] = [
     name: "番茄雞蛋麵",
     blurb: "深夜的溫柔。一鍋裡有湯、有麵，也有一點點青菜的良心。",
     ingredients: ["noodles", "tomato", "egg", "greens"],
-    vessel: "bowl",
-    texture: "noodle",
-    base: "#D9684A",
-    bits: [
-      { color: COLORS.egg, shape: "chunk", count: 6 },
-      { color: COLORS.tomato, shape: "chunk", count: 5 },
-      { color: COLORS.greens, shape: "leaf", count: 5 },
-    ],
     steps: [
       { game: "chop", ingredient: "tomato", title: "切番茄", text: "切小塊一點，才容易煮化成湯。" },
       { game: "heat", title: "炒出茄紅", text: "番茄炒到軟爛出紅油，湯色就成了。" },
@@ -199,14 +130,6 @@ export const RECIPES: Recipe[] = [
     name: "蒜香辣椒麵",
     blurb: "冰箱快空時的救星。材料很少，香氣很大聲。",
     ingredients: ["noodles", "garlic", "chili", "basil"],
-    vessel: "plate",
-    texture: "noodle",
-    base: "#E5C27A",
-    bits: [
-      { color: COLORS.garlic, shape: "dot", count: 8 },
-      { color: COLORS.chili, shape: "ring", count: 7 },
-      { color: COLORS.basil, shape: "leaf", count: 5 },
-    ],
     steps: [
       { game: "chop", ingredient: "garlic", title: "切蒜片", text: "薄薄切片，才會均勻地變成金黃色。" },
       { game: "heat", title: "冷油煸蒜", text: "蒜片微金就關火，餘溫會把它帶到剛好。" },
@@ -219,14 +142,6 @@ export const RECIPES: Recipe[] = [
     name: "香菇豆腐煲",
     blurb: "砂鍋上桌還在冒泡，豆腐吸飽了香菇的鮮味。",
     ingredients: ["tofu", "mushroom", "garlic"],
-    vessel: "pan",
-    texture: "soup",
-    base: "#8A5A33",
-    bits: [
-      { color: COLORS.tofu, shape: "chunk", count: 7 },
-      { color: COLORS.mushroom, shape: "chunk", count: 7 },
-      { color: COLORS.garlic, shape: "dot", count: 5 },
-    ],
     steps: [
       { game: "chop", ingredient: "mushroom", title: "切香菇", text: "切成厚片，留住嚼勁。" },
       { game: "heat", title: "煎豆腐", text: "兩面煎到金黃，燉煮時才不會散。" },
@@ -239,13 +154,6 @@ export const RECIPES: Recipe[] = [
     name: "蒜炒青菜",
     blurb: "看起來最簡單，卻最考驗火候。快，才保得住那抹綠。",
     ingredients: ["greens", "garlic"],
-    vessel: "plate",
-    texture: "saute",
-    base: "#A9BA7E",
-    bits: [
-      { color: COLORS.greens, shape: "leaf", count: 12 },
-      { color: COLORS.garlic, shape: "dot", count: 7 },
-    ],
     steps: [
       { game: "chop", ingredient: "greens", title: "切青江菜", text: "菜梗和菜葉分開，因為它們熟的速度不同。" },
       { game: "stir", title: "大火快炒", text: "蒜爆香後下菜梗，再下菜葉，手不要停。" },
@@ -257,13 +165,6 @@ export const RECIPES: Recipe[] = [
     name: "雞絲青菜粥",
     blurb: "把米煮到開花，是給累了的人最好的一句話。",
     ingredients: ["rice", "chicken", "greens"],
-    vessel: "bowl",
-    texture: "rice",
-    base: "#F0E4C8",
-    bits: [
-      { color: COLORS.chicken, shape: "chunk", count: 7 },
-      { color: COLORS.greens, shape: "leaf", count: 6 },
-    ],
     steps: [
       { game: "chop", ingredient: "greens", title: "切青菜", text: "切細一點，最後才下鍋。" },
       { game: "pour", liquid: "高湯", title: "加高湯", text: "米飯加入高湯到刻度線，開小火。" },
